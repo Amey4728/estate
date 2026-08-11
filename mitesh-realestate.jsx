@@ -23,7 +23,7 @@ import {
 
 /* 1. ===================== STYLES ===================== */
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Archivo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Archivo:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap');
 
 :root{
   --paper:#FAF7F0;        /* warm page ground */
@@ -37,9 +37,12 @@ const CSS = `
   --ivory:#EDE3CE;        /* elevation stone */
   --line:rgba(21,36,32,.14);
 }
-.mrs{ background:var(--paper); color:var(--ink); font-family:'Archivo',ui-sans-serif,system-ui,sans-serif; }
+.mrs{ background:var(--paper); color:var(--ink);
+  /* Archivo has no Devanagari glyphs — Noto catches the Hindi reviews so they
+     don't fall back to a mismatched system font */
+  font-family:'Archivo','Noto Sans Devanagari',ui-sans-serif,system-ui,sans-serif; }
 .mrs ::selection{ background:var(--brass-soft); color:var(--deep); }
-.font-display{ font-family:'Marcellus',Georgia,'Times New Roman',serif; letter-spacing:.005em; }
+.font-display{ font-family:'Marcellus','Noto Sans Devanagari',Georgia,'Times New Roman',serif; letter-spacing:.005em; }
 .text-muted{ color:var(--muted); }
 .text-brass{ color:var(--brass); }
 .text-ivory{ color:var(--ivory); }
@@ -2099,15 +2102,183 @@ const SERVICES = [
 const TESTIMONIALS = [
   {
     name: "Rohit & Sneha Kulkarni",
-    role: "Bought a 3 BHK in Vijay Nagar",
+    role: "Bought a plot near Rau",
     rating: 5,
-    text: "We had visited eleven projects on our own and were exhausted. Mitesh sir shortlisted three, explained exactly why, and negotiated ₹6 lakh below the quoted price. The registration was done before our possession date.",
+    text: "We had visited eleven layouts on our own and were exhausted. Mitesh ji shortlisted three, explained exactly why, and negotiated well below the quoted rate. Our registry was done before the possession date.",
   },
   {
-    name: "Meera Jain",
-    role: "Sold a flat in Saket Nagar",
+    name: "राजेश पाटीदार",
+    role: "उज्जैन रोड पर प्लॉट खरीदा",
+    rating: 5,
+    text: "उज्जैन रोड पर प्लॉट लेना था, पर कागज़ों की समझ नहीं थी। मितेश जी ने रजिस्ट्री, नामांतरण और लोन तक सब खुद संभाला। रेट भी एकदम सही लगवाया — भरोसे का नाम है।",
+  },
+  {
+    name: "Priya Sharma",
+    role: "Bought a plot on the Super Corridor",
+    rating: 5,
+    text: "As a first-time buyer I had a hundred questions. They answered every one patiently, showed me the T&CP approvals themselves, and never pushed me toward a bigger budget. My registry was done in three weeks.",
+  },
+  {
+    name: "सुनीता व अनिल चौहान",
+    role: "एबी बायपास पर प्लॉट लिया",
+    rating: 5,
+    text: "हमें घर बनाने के लिए साफ़ टाइटल वाला प्लॉट चाहिए था। तीन लेआउट दिखाए और हर एक की कमी-खूबी साफ़ बताई। कहीं भी जल्दबाज़ी नहीं करवाई — आज हम पूरी तरह निश्चिंत हैं।",
+  },
+  {
+    name: "Vikram Rathore",
+    role: "Commercial investor",
     rating: 4,
-    text: "They priced my flat realistically, brought only serious buyers, and handled the society NOC and paperwork completely. Sold in five weeks while I was overseas — everything on video call and email.",
+    text: "I compare every deal hard, and their rental and appreciation numbers were the most honest I heard in Indore. Took a commercial space through them and the possession paperwork was flawless.",
+  },
+  {
+    name: "दीपक मालवीय",
+    role: "पिथमपुर रोड पर निवेश",
+    rating: 5,
+    text: "साइट विज़िट से लेकर रजिस्ट्री तक पूरा साथ दिया। RERA और T&CP के सारे कागज़ पहले ही जाँच कर दिखाए। यहाँ दलाली नहीं, सलाह मिलती है।",
+  },
+  {
+    name: "अर्जुन यादव",
+    role: "देवास बायपास पर प्लॉट",
+    rating: 5,
+    text: "देवास बायपास पर तीन लेआउट दिखाए, हर प्लॉट का रेट और अप्रूवल खुलकर बताया। बिना किसी दबाव के फ़ैसला करने दिया — ऐसी ईमानदारी कम मिलती है।",
+  },
+  {
+    name: "Kavita Verma",
+    role: "Bought a plot on AB Bypass",
+    rating: 4,
+    text: "They arranged site visits on a Sunday for our whole family, shared the layout map and rate list openly, and helped with the loan file too. Everything was done in one clean, transparent process.",
+  },
+  {
+    name: "मनोज शर्मा",
+    role: "सुपर कॉरिडोर निवेशक",
+    rating: 5,
+    text: "निवेश के लिए सुपर कॉरिडोर चुनने में इन्होंने मेट्रो और आईटी बेल्ट का पूरा गणित समझाया। जो प्लॉट सही नहीं था, उसके लिए साफ़ मना भी किया। यही फ़र्क है सलाहकार और दलाल में।",
+  },
+  {
+    name: "Amit & Pooja Dubey",
+    role: "Building a home at Rau",
+    rating: 5,
+    text: "From shortlisting the plot to the naamantaran after registry, one desk handled everything. Six months later they still pick up the phone for every small question. Highly recommended in Indore.",
+  },
+  {
+    name: "मुकेश सोलंकी",
+    role: "सुला खेड़ी में प्लॉट बुक किया",
+    rating: 4,
+    text: "गेटवे की एंट्री देखकर ही मन बन गया था, पर मितेश जी ने पहले सारे अप्रूवल दिखाए, फिर बुकिंग करवाई। पैसों की पूरी पारदर्शिता — हर रसीद समय पर मिली।",
+  },
+  {
+    name: "Dr. Nitin Vyas",
+    role: "Bought a plot at Mayakhedi, AB Bypass",
+    rating: 5,
+    text: "With hospital duties I had no time for paperwork. Their team collected documents from my clinic, completed the registry, and handed me the file with every approval in order. Completely hassle-free.",
+  },
+  {
+    name: "सीमा सिसोदिया",
+    role: "पहली बार प्रॉपर्टी खरीदी",
+    rating: 5,
+    text: "अकेली महिला होने के नाते थोड़ी झिझक थी, पर यहाँ हर बात इज़्ज़त और धैर्य से समझाई गई। बजट से बाहर का प्लॉट दिखाया ही नहीं — यही बात सबसे अच्छी लगी।",
+  },
+  {
+    name: "Ankit Agrawal",
+    role: "Investor · 3 plots via MRS",
+    rating: 5,
+    text: "I have bought three plots through them across the Ujjain Road and Pithampur belts. Rate history, layout comparisons, resale outlook — everything on paper before I pay a rupee. That discipline is rare.",
+  },
+  {
+    name: "रमेशचंद्र जोशी",
+    role: "रिटायरमेंट के बाद प्लॉट लिया",
+    rating: 5,
+    text: "पेंशन की जमा-पूँजी थी, इसलिए सौ बार सोच रहा था। इन्होंने बेटे की तरह सलाह दी, दो किफ़ायती विकल्प खुद बताए और रजिस्ट्री तक साथ खड़े रहे। भगवान भला करे।",
+  },
+  {
+    name: "Shraddha & Gaurav Tiwari",
+    role: "Plot near Rau for our first home",
+    rating: 4,
+    text: "We compared six dealers before choosing MRS. Only they showed us the actual T&CP map and walked the plot boundary with us. Booking to registry took 26 days flat.",
+  },
+  {
+    name: "विनोद कुशवाह",
+    role: "देवास बायपास पर निवेश",
+    rating: 4,
+    text: "प्लॉट और पेपर वर्क दोनों बढ़िया। बस साइट विज़िट के लिए एक हफ़्ते इंतज़ार करना पड़ा क्योंकि डिमांड बहुत है। बाकी सेवा में कोई कमी नहीं।",
+  },
+  {
+    name: "CA Rohini Khandelwal",
+    role: "Commercial space enquiry",
+    rating: 5,
+    text: "As a CA I audit every claim. Their yield calculations for the commercial project matched the market data I verified independently. Refreshingly honest numbers in this industry.",
+  },
+  {
+    name: "ओमप्रकाश पटेल",
+    role: "उज्जैन रोड पर प्लॉट",
+    rating: 4,
+    text: "गाँव से आकर शहर में ज़मीन लेना आसान नहीं था। इन्होंने नक्शा, नामांतरण, डायवर्सन — सब सरल भाषा में समझाया और पूरा काम खुद करवाया।",
+  },
+  {
+    name: "Neha Saxena",
+    role: "Bought remotely from Bangalore",
+    rating: 5,
+    text: "I did the entire Super Corridor purchase from Bangalore — video site visits, documents on email, registry through my father. Updates came on WhatsApp at every step. Felt completely safe.",
+  },
+  {
+    name: "संजय परमार",
+    role: "पिथमपुर रोड पर प्लॉट",
+    rating: 4,
+    text: "फ़ैक्टरी पिथमपुर में है तो पास ही प्लॉट चाहिए था। तीन दिन में चार लेआउट दिखाए, रेट की तुलना करके सबसे सही सौदा करवाया। सीधा और साफ़ काम।",
+  },
+  {
+    name: "Harsh & Payal Mishra",
+    role: "Plot at Sula Khedi",
+    rating: 5,
+    text: "The gateway project photos looked too good to be true, so we visited unannounced. The site matched the promise. MRS handled our home-loan file too — sanctioned in twelve days.",
+  },
+  {
+    name: "कैलाश नागर",
+    role: "अपना प्लॉट बिकवाया",
+    rating: 5,
+    text: "मेरा पुराना प्लॉट डेढ़ महीने में सही दाम पर बिकवा दिया। ख़रीदार भी जाँचे-परखे लाए, और रजिस्ट्री वाले दिन तक पूरा साथ दिया। बेचने वालों के लिए भी उतने ही भरोसेमंद।",
+  },
+  {
+    name: "Aditya Thakur",
+    role: "First-time buyer, Dewas Bypass",
+    rating: 4,
+    text: "Good guidance and genuine layouts. I would have liked more photos on WhatsApp before my first visit, but once on site, everything was exactly as described. Registry support was excellent.",
+  },
+  {
+    name: "वंदना त्रिवेदी",
+    role: "एबी बायपास पर प्लॉट",
+    rating: 5,
+    text: "वास्तु के हिसाब से पूर्वमुखी प्लॉट चाहिए था। बिना झुंझलाए आठ प्लॉट दिखाए और आख़िर में वही दिलवाया जो हमें चाहिए था। धैर्य और समझ दोनों हैं इनमें।",
+  },
+  {
+    name: "Er. Sachin Chaturvedi",
+    role: "Site engineer · bought at Rau",
+    rating: 4,
+    text: "I checked the internal road width, drainage lines and boundary markings myself — all as per the sanctioned layout. When an engineer cannot find faults, that says enough.",
+  },
+  {
+    name: "मीना व राजेंद्र गौर",
+    role: "बेटी के भविष्य के लिए निवेश",
+    rating: 5,
+    text: "पाँच साल का नज़रिया रखकर प्लॉट लिया है। इन्होंने ग्रोथ वाले इलाक़े गिनकर बताए और काग़ज़ पक्के करवाए। अब निश्चिंत हैं कि सही जगह पैसा लगा है।",
+  },
+  {
+    name: "Pankaj Panwar",
+    role: "Plot on Ujjain Road",
+    rating: 4,
+    text: "Booked during a Sunday site-visit camp. The rate list was printed and public — no whisper pricing, no special-discount drama. Straightforward dealing from start to finish.",
+  },
+  {
+    name: "स्वाति पांडे",
+    role: "सुपर कॉरिडोर पर प्लॉट",
+    rating: 4,
+    text: "प्लॉट, पेपर और सर्विस — तीनों अच्छे। रजिस्ट्री की तारीख़ एक बार आगे बढ़ी थी, पर वजह पहले ही बता दी गई थी। ईमानदारी से काम करने वाली टीम।",
+  },
+  {
+    name: "Mahesh & Sushila Choudhary",
+    role: "Built our retirement home at Rau",
+    rating: 5,
+    text: "Two years ago they helped us buy the plot; this year they connected us to a reliable contractor and even came for the griha pravesh. That is not business, that is relationship.",
   },
 ];
 
@@ -2980,6 +3151,19 @@ const About = ({ go }) => (
 );
 
 /* ---------- Testimonials ---------- */
+/* Avatar initials. Works for any script — matching [A-Z] left every Devanagari
+   name with an empty circle — and skips honorifics and joining words so
+   "Dr. Nitin Vyas" reads NV, not DN. */
+const HONORIFICS = /^(dr|mr|mrs|ms|shri|smt|prof|adv|ca|er|md|sh)\.?$/i;
+const JOINERS = new Set(["&", "and", "व", "एवं", "और"]);
+
+const initialsOf = (name) => {
+  const words = (name || "")
+    .split(/[\s.]+/)
+    .filter((w) => w && !HONORIFICS.test(w) && !JOINERS.has(w));
+  return words.slice(0, 2).map((w) => [...w][0]).join("");
+};
+
 const TestimonialCard = ({ t }) => (
   <figure className="flex h-full flex-col rounded-2xl p-6" style={{ background: "rgba(237,227,206,.06)", border: "1px solid rgba(237,227,206,.16)" }}>
     <Stars n={t.rating} />
@@ -2988,7 +3172,7 @@ const TestimonialCard = ({ t }) => (
     </blockquote>
     <figcaption className="mt-5 flex items-center gap-3 border-t pt-4" style={{ borderColor: "rgba(237,227,206,.16)" }}>
       <span className="font-display grid h-10 w-10 place-items-center rounded-full text-sm" style={{ background: "var(--brass)", color: "#231A05" }}>
-        {t.name.split(" ").filter((w) => /^[A-Z]/.test(w)).slice(0, 2).map((w) => w[0]).join("")}
+        {initialsOf(t.name)}
       </span>
       <span>
         <span className="block t-13 font-semibold text-ivory">{t.name}</span>

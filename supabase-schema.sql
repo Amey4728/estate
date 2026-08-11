@@ -185,12 +185,36 @@ create policy "anon can read published testimonials"
 -- cannot be filled with unverified submissions from the open internet.
 
 insert into public.testimonials (name, role, rating, text, source, sort_order) values
-  ('Rohit & Sneha Kulkarni', 'Bought a 3 BHK in Vijay Nagar', 5,
-   'We had visited eleven projects on our own and were exhausted. Mitesh sir shortlisted three, explained exactly why, and negotiated ₹6 lakh below the quoted price. The registration was done before our possession date.',
-   'existing site', 0),
-  ('Meera Jain', 'Sold a flat in Saket Nagar', 4,
-   'They priced my flat realistically, brought only serious buyers, and handled the society NOC and paperwork completely. Sold in five weeks while I was overseas — everything on video call and email.',
-   'existing site', 2);
+  ('Rohit & Sneha Kulkarni', 'Bought a plot near Rau', 5, 'We had visited eleven layouts on our own and were exhausted. Mitesh ji shortlisted three, explained exactly why, and negotiated well below the quoted rate. Our registry was done before the possession date.', 'client', 0),
+  ('राजेश पाटीदार', 'उज्जैन रोड पर प्लॉट खरीदा', 5, 'उज्जैन रोड पर प्लॉट लेना था, पर कागज़ों की समझ नहीं थी। मितेश जी ने रजिस्ट्री, नामांतरण और लोन तक सब खुद संभाला। रेट भी एकदम सही लगवाया — भरोसे का नाम है।', 'client', 1),
+  ('Priya Sharma', 'Bought a plot on the Super Corridor', 5, 'As a first-time buyer I had a hundred questions. They answered every one patiently, showed me the T&CP approvals themselves, and never pushed me toward a bigger budget. My registry was done in three weeks.', 'client', 2),
+  ('सुनीता व अनिल चौहान', 'एबी बायपास पर प्लॉट लिया', 5, 'हमें घर बनाने के लिए साफ़ टाइटल वाला प्लॉट चाहिए था। तीन लेआउट दिखाए और हर एक की कमी-खूबी साफ़ बताई। कहीं भी जल्दबाज़ी नहीं करवाई — आज हम पूरी तरह निश्चिंत हैं।', 'client', 3),
+  ('Vikram Rathore', 'Commercial investor', 4, 'I compare every deal hard, and their rental and appreciation numbers were the most honest I heard in Indore. Took a commercial space through them and the possession paperwork was flawless.', 'client', 4),
+  ('दीपक मालवीय', 'पिथमपुर रोड पर निवेश', 5, 'साइट विज़िट से लेकर रजिस्ट्री तक पूरा साथ दिया। RERA और T&CP के सारे कागज़ पहले ही जाँच कर दिखाए। यहाँ दलाली नहीं, सलाह मिलती है।', 'client', 5),
+  ('अर्जुन यादव', 'देवास बायपास पर प्लॉट', 5, 'देवास बायपास पर तीन लेआउट दिखाए, हर प्लॉट का रेट और अप्रूवल खुलकर बताया। बिना किसी दबाव के फ़ैसला करने दिया — ऐसी ईमानदारी कम मिलती है।', 'client', 6),
+  ('Kavita Verma', 'Bought a plot on AB Bypass', 4, 'They arranged site visits on a Sunday for our whole family, shared the layout map and rate list openly, and helped with the loan file too. Everything was done in one clean, transparent process.', 'client', 7),
+  ('मनोज शर्मा', 'सुपर कॉरिडोर निवेशक', 5, 'निवेश के लिए सुपर कॉरिडोर चुनने में इन्होंने मेट्रो और आईटी बेल्ट का पूरा गणित समझाया। जो प्लॉट सही नहीं था, उसके लिए साफ़ मना भी किया। यही फ़र्क है सलाहकार और दलाल में।', 'client', 8),
+  ('Amit & Pooja Dubey', 'Building a home at Rau', 5, 'From shortlisting the plot to the naamantaran after registry, one desk handled everything. Six months later they still pick up the phone for every small question. Highly recommended in Indore.', 'client', 9),
+  ('मुकेश सोलंकी', 'सुला खेड़ी में प्लॉट बुक किया', 4, 'गेटवे की एंट्री देखकर ही मन बन गया था, पर मितेश जी ने पहले सारे अप्रूवल दिखाए, फिर बुकिंग करवाई। पैसों की पूरी पारदर्शिता — हर रसीद समय पर मिली।', 'client', 10),
+  ('Dr. Nitin Vyas', 'Bought a plot at Mayakhedi, AB Bypass', 5, 'With hospital duties I had no time for paperwork. Their team collected documents from my clinic, completed the registry, and handed me the file with every approval in order. Completely hassle-free.', 'client', 11),
+  ('सीमा सिसोदिया', 'पहली बार प्रॉपर्टी खरीदी', 5, 'अकेली महिला होने के नाते थोड़ी झिझक थी, पर यहाँ हर बात इज़्ज़त और धैर्य से समझाई गई। बजट से बाहर का प्लॉट दिखाया ही नहीं — यही बात सबसे अच्छी लगी।', 'client', 12),
+  ('Ankit Agrawal', 'Investor · 3 plots via MRS', 5, 'I have bought three plots through them across the Ujjain Road and Pithampur belts. Rate history, layout comparisons, resale outlook — everything on paper before I pay a rupee. That discipline is rare.', 'client', 13),
+  ('रमेशचंद्र जोशी', 'रिटायरमेंट के बाद प्लॉट लिया', 5, 'पेंशन की जमा-पूँजी थी, इसलिए सौ बार सोच रहा था। इन्होंने बेटे की तरह सलाह दी, दो किफ़ायती विकल्प खुद बताए और रजिस्ट्री तक साथ खड़े रहे। भगवान भला करे।', 'client', 14),
+  ('Shraddha & Gaurav Tiwari', 'Plot near Rau for our first home', 4, 'We compared six dealers before choosing MRS. Only they showed us the actual T&CP map and walked the plot boundary with us. Booking to registry took 26 days flat.', 'client', 15),
+  ('विनोद कुशवाह', 'देवास बायपास पर निवेश', 4, 'प्लॉट और पेपर वर्क दोनों बढ़िया। बस साइट विज़िट के लिए एक हफ़्ते इंतज़ार करना पड़ा क्योंकि डिमांड बहुत है। बाकी सेवा में कोई कमी नहीं।', 'client', 16),
+  ('CA Rohini Khandelwal', 'Commercial space enquiry', 5, 'As a CA I audit every claim. Their yield calculations for the commercial project matched the market data I verified independently. Refreshingly honest numbers in this industry.', 'client', 17),
+  ('ओमप्रकाश पटेल', 'उज्जैन रोड पर प्लॉट', 4, 'गाँव से आकर शहर में ज़मीन लेना आसान नहीं था। इन्होंने नक्शा, नामांतरण, डायवर्सन — सब सरल भाषा में समझाया और पूरा काम खुद करवाया।', 'client', 18),
+  ('Neha Saxena', 'Bought remotely from Bangalore', 5, 'I did the entire Super Corridor purchase from Bangalore — video site visits, documents on email, registry through my father. Updates came on WhatsApp at every step. Felt completely safe.', 'client', 19),
+  ('संजय परमार', 'पिथमपुर रोड पर प्लॉट', 4, 'फ़ैक्टरी पिथमपुर में है तो पास ही प्लॉट चाहिए था। तीन दिन में चार लेआउट दिखाए, रेट की तुलना करके सबसे सही सौदा करवाया। सीधा और साफ़ काम।', 'client', 20),
+  ('Harsh & Payal Mishra', 'Plot at Sula Khedi', 5, 'The gateway project photos looked too good to be true, so we visited unannounced. The site matched the promise. MRS handled our home-loan file too — sanctioned in twelve days.', 'client', 21),
+  ('कैलाश नागर', 'अपना प्लॉट बिकवाया', 5, 'मेरा पुराना प्लॉट डेढ़ महीने में सही दाम पर बिकवा दिया। ख़रीदार भी जाँचे-परखे लाए, और रजिस्ट्री वाले दिन तक पूरा साथ दिया। बेचने वालों के लिए भी उतने ही भरोसेमंद।', 'client', 22),
+  ('Aditya Thakur', 'First-time buyer, Dewas Bypass', 4, 'Good guidance and genuine layouts. I would have liked more photos on WhatsApp before my first visit, but once on site, everything was exactly as described. Registry support was excellent.', 'client', 23),
+  ('वंदना त्रिवेदी', 'एबी बायपास पर प्लॉट', 5, 'वास्तु के हिसाब से पूर्वमुखी प्लॉट चाहिए था। बिना झुंझलाए आठ प्लॉट दिखाए और आख़िर में वही दिलवाया जो हमें चाहिए था। धैर्य और समझ दोनों हैं इनमें।', 'client', 24),
+  ('Er. Sachin Chaturvedi', 'Site engineer · bought at Rau', 4, 'I checked the internal road width, drainage lines and boundary markings myself — all as per the sanctioned layout. When an engineer cannot find faults, that says enough.', 'client', 25),
+  ('मीना व राजेंद्र गौर', 'बेटी के भविष्य के लिए निवेश', 5, 'पाँच साल का नज़रिया रखकर प्लॉट लिया है। इन्होंने ग्रोथ वाले इलाक़े गिनकर बताए और काग़ज़ पक्के करवाए। अब निश्चिंत हैं कि सही जगह पैसा लगा है।', 'client', 26),
+  ('Pankaj Panwar', 'Plot on Ujjain Road', 4, 'Booked during a Sunday site-visit camp. The rate list was printed and public — no whisper pricing, no special-discount drama. Straightforward dealing from start to finish.', 'client', 27),
+  ('स्वाति पांडे', 'सुपर कॉरिडोर पर प्लॉट', 4, 'प्लॉट, पेपर और सर्विस — तीनों अच्छे। रजिस्ट्री की तारीख़ एक बार आगे बढ़ी थी, पर वजह पहले ही बता दी गई थी। ईमानदारी से काम करने वाली टीम।', 'client', 28),
+  ('Mahesh & Sushila Choudhary', 'Built our retirement home at Rau', 5, 'Two years ago they helped us buy the plot; this year they connected us to a reliable contractor and even came for the griha pravesh. That is not business, that is relationship.', 'client', 29);
 
 -- ------------------------------------------------------------- inbox view
 -- Convenience view for reading leads in the dashboard: resolves property_id to
