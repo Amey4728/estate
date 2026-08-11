@@ -90,6 +90,17 @@ select.field{ appearance:none; background-image:url("data:image/svg+xml;utf8,<sv
 .rise{ animation:riseIn .7s ease both; }
 .rise-1{ animation-delay:.08s } .rise-2{ animation-delay:.16s } .rise-3{ animation-delay:.24s }
 
+/* Testimonials marquee — the track holds the reviews twice over, so translating
+   it exactly half its width lands back on the start and the loop is seamless. */
+@keyframes tmarquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+.tmarquee{ overflow:hidden; }
+.tmarquee-track{ display:flex; animation:tmarquee var(--tm-duration,180s) linear infinite; will-change:transform; }
+.tmarquee:hover .tmarquee-track,
+.tmarquee:focus-within .tmarquee-track{ animation-play-state:paused; }
+/* fade the cards into the section edges instead of clipping them dead */
+.tmarquee-mask{ -webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent);
+  mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent); }
+
 /* type & layout utilities (replace Tailwind arbitrary values) */
 .t-13{font-size:13.5px;} .t-14{font-size:14.5px;} .t-15{font-size:15.5px;} .t-17{font-size:17px;}
 .overline{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;}
@@ -119,6 +130,9 @@ html{ scroll-behavior:smooth; }
 @media (prefers-reduced-motion:reduce){
   html{ scroll-behavior:auto; }
   .mrs *, .mrs *::before, .mrs *::after{ animation:none!important; transition:none!important; }
+  /* with the animation off the track would sit frozen and clipped — let it be
+     scrolled by hand instead */
+  .tmarquee{ overflow-x:auto; }
 }
 `;
 
@@ -3182,7 +3196,7 @@ const TestimonialCard = ({ t }) => (
   </figure>
 );
 
-/* How many cards are visible at once, by breakpoint. */
+/* How many cards fit across, by breakpoint — drives the card width. */
 const usePerView = () => {
   const [n, setN] = useState(3);
   useEffect(() => {
@@ -3197,89 +3211,48 @@ const usePerView = () => {
   return n;
 };
 
-const ROTATE_MS = 4500;
+/* Seconds each review spends crossing the screen. Higher = slower drift. */
+const SECONDS_PER_CARD = 6;
 
 const Testimonials = () => {
   const { testimonials } = useCatalogue();
   const perView = usePerView();
-  const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
 
-  const maxIndex = Math.max(0, testimonials.length - perView);
-  const canRotate = maxIndex > 0;
+  const n = testimonials.length;
+  if (!n) return null;
 
-  // keep the index in range when the breakpoint or the list changes
-  useEffect(() => { setI((v) => Math.min(v, maxIndex)); }, [maxIndex]);
-
-  const step = (d) => setI((v) => (v + d < 0 ? maxIndex : v + d > maxIndex ? 0 : v + d));
-
-  /* Advance one card at a time. Hovering, focusing a card, or a
-     prefers-reduced-motion setting stops it. */
-  useEffect(() => {
-    if (!canRotate || paused) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setI((v) => (v >= maxIndex ? 0 : v + 1)), ROTATE_MS);
-    return () => clearInterval(id);
-  }, [canRotate, paused, maxIndex]);
+  /* The track carries the list twice so the -50% keyframe wraps invisibly.
+     Widths are percentages of the track, which is itself sized against the
+     container, so a card always lands on exactly 1/perView of the viewport. */
+  const trackWidthPct = (2 * n * 100) / perView;
+  const cardWidthPct = 100 / (2 * n);
+  const loop = [...testimonials, ...testimonials];
 
   return (
     <section className="bg-deep">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <SectionHead center light eyebrow="Client words" title="Trusted across Indore, one family at a time"
           sub="A few of the buyers, sellers and investors who've worked with Mitesh Real Estate Solution." />
+      </div>
 
-        <div
-          className="relative mt-10"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocusCapture={() => setPaused(true)}
-          onBlurCapture={() => setPaused(false)}
-          role="region"
-          aria-roledescription="carousel"
-          aria-label="Client testimonials"
+      <div className="tmarquee tmarquee-mask pb-16 lg:pb-20"
+        role="region" aria-label="Client testimonials">
+        <ul
+          className="tmarquee-track list-none p-0"
+          style={{ width: `${trackWidthPct}%`, "--tm-duration": `${n * SECONDS_PER_CARD}s` }}
         >
-          <div className="overflow-hidden">
-            <ul
-              className="flex list-none p-0"
-              style={{
-                transform: `translateX(-${i * (100 / perView)}%)`,
-                transition: "transform .6s cubic-bezier(.22,.61,.36,1)",
-              }}
+          {loop.map((t, idx) => (
+            <li
+              key={`${t.id ?? t.name}-${idx}`}
+              className="px-2.5"
+              style={{ flex: `0 0 ${cardWidthPct}%` }}
+              /* the second pass is decorative — don't read every review twice */
+              aria-hidden={idx >= n}
             >
-              {testimonials.map((t, idx) => (
-                <li
-                  key={t.id ?? `${t.name}-${idx}`}
-                  className="px-2.5"
-                  style={{ flex: `0 0 ${100 / perView}%` }}
-                  aria-hidden={idx < i || idx >= i + perView}
-                >
-                  <TestimonialCard t={t} />
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {canRotate && (
-            <div className="mt-7 flex items-center justify-center gap-4">
-              <button type="button" onClick={() => step(-1)} aria-label="Previous testimonials"
-                className="grid h-9 w-9 place-items-center rounded-full text-ivory transition-colors hover:text-brass"
-                style={{ border: "1px solid rgba(237,227,206,.28)" }}>
-                <ArrowLeft size={15} />
-              </button>
-
-              <p className="t-13 tabular-nums text-ivory" style={{ opacity: 0.7 }} aria-live="polite">
-                {Math.min(i + perView, testimonials.length)} / {testimonials.length}
-                <span className="ml-2" style={{ opacity: 0.55 }}>{paused ? "paused" : ""}</span>
-              </p>
-
-              <button type="button" onClick={() => step(1)} aria-label="Next testimonials"
-                className="grid h-9 w-9 place-items-center rounded-full text-ivory transition-colors hover:text-brass"
-                style={{ border: "1px solid rgba(237,227,206,.28)" }}>
-                <ArrowRight size={15} />
-              </button>
-            </div>
-          )}
-        </div>
+              <TestimonialCard t={t} />
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
