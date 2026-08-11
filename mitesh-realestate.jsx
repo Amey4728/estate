@@ -149,7 +149,7 @@ const CONTACT = {
   ],
   whatsapp: "https://wa.me/919406622244",
   email: "meetesh24365@yahoo.com",
-  office: "10 Godbole Colony, Annapurna Main Road, Indore, Madhya Pradesh 452009",
+  office: "10 Godbole Colony, opp. Annapurna Temple, Indore, Madhya Pradesh 452009",
   established: 2020,
   hours: [
     { d: "Mon – Sat", t: "10:00 am – 7:00 pm" },
