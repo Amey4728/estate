@@ -156,3 +156,41 @@ values
 
 -- Listings whose images stayed in code (data-URI creatives): the site falls back
 -- to the bundled images for any row where images is null.
+
+-- -------------------------------------------------------------- testimonials
+-- Add real client reviews here — the carousel renders however many rows exist,
+-- so it scales from 3 to 100 without any code change.
+drop table if exists public.testimonials cascade;
+
+create table public.testimonials (
+  id         bigint generated always as identity primary key,
+  name       text    not null,
+  role       text,                       -- e.g. "Bought a 3 BHK in Vijay Nagar"
+  rating     smallint not null default 5 check (rating between 1 and 5),
+  text       text    not null,
+  source     text,                       -- where the review came from (Google, WhatsApp, in person…)
+  sort_order integer not null default 0,
+  published  boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index testimonials_sort_idx on public.testimonials (sort_order);
+
+alter table public.testimonials enable row level security;
+
+create policy "anon can read published testimonials"
+  on public.testimonials for select to anon using (published);
+
+-- No anon insert policy: reviews are added from the dashboard, so the section
+-- cannot be filled with unverified submissions from the open internet.
+
+insert into public.testimonials (name, role, rating, text, source, sort_order) values
+  ('Rohit & Sneha Kulkarni', 'Bought a 3 BHK in Vijay Nagar', 5,
+   'We had visited eleven projects on our own and were exhausted. Mitesh sir shortlisted three, explained exactly why, and negotiated ₹6 lakh below the quoted price. The registration was done before our possession date.',
+   'existing site', 0),
+  ('Farhan Shaikh', 'Investor · 2 properties via MRS', 5,
+   'What I value is the honesty. I was set on a project on the AB Bypass and they talked me out of it with actual rental data, then found me a better-yielding office bay on the Super Corridor. That''s advice, not brokerage.',
+   'existing site', 1),
+  ('Meera Jain', 'Sold a flat in Saket Nagar', 4,
+   'They priced my flat realistically, brought only serious buyers, and handled the society NOC and paperwork completely. Sold in five weeks while I was overseas — everything on video call and email.',
+   'existing site', 2);

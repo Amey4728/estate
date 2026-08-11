@@ -2126,7 +2126,9 @@ const TYPES = typesOf(PROPERTIES);
 /* The listings above are the shipped fallback. When Supabase is reachable the
    app swaps in whatever is in the properties table; every dropdown, footer link
    and hero counter reads from this context so they stay in step. */
-const CatalogueCtx = createContext({ properties: PROPERTIES, localities: LOCALITIES, types: TYPES });
+const CatalogueCtx = createContext({
+  properties: PROPERTIES, localities: LOCALITIES, types: TYPES, testimonials: TESTIMONIALS,
+});
 const useCatalogue = () => useContext(CatalogueCtx);
 
 /* DB row (snake_case) -> the shape the components expect */
@@ -2159,6 +2161,13 @@ const fromRow = (row) => {
 const fetchProperties = async () => {
   const rows = await db("properties?select=*&published=eq.true&order=sort_order.asc");
   return Array.isArray(rows) ? rows.map(fromRow) : [];
+};
+
+const fetchTestimonials = async () => {
+  const rows = await db("testimonials?select=*&published=eq.true&order=sort_order.asc");
+  return Array.isArray(rows)
+    ? rows.map((r) => ({ id: r.id, name: r.name, role: r.role || "", rating: r.rating ?? 5, text: r.text }))
+    : [];
 };
 /* footer link wording — the mass nouns don't take a plain "s" */
 const PLURAL = {
@@ -2995,17 +3004,108 @@ const TestimonialCard = ({ t }) => (
   </figure>
 );
 
-const Testimonials = () => (
-  <section className="bg-deep">
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-      <SectionHead center light eyebrow="Client words" title="Trusted across Indore, one family at a time"
-        sub="A few of the buyers, sellers and investors who've worked with Mitesh Real Estate Solution." />
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        {TESTIMONIALS.map((t) => <TestimonialCard key={t.name} t={t} />)}
+/* How many cards are visible at once, by breakpoint. */
+const usePerView = () => {
+  const [n, setN] = useState(3);
+  useEffect(() => {
+    const md = window.matchMedia("(min-width: 768px)");
+    const lg = window.matchMedia("(min-width: 1024px)");
+    const read = () => setN(lg.matches ? 3 : md.matches ? 2 : 1);
+    read();
+    md.addEventListener("change", read);
+    lg.addEventListener("change", read);
+    return () => { md.removeEventListener("change", read); lg.removeEventListener("change", read); };
+  }, []);
+  return n;
+};
+
+const ROTATE_MS = 4500;
+
+const Testimonials = () => {
+  const { testimonials } = useCatalogue();
+  const perView = usePerView();
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const maxIndex = Math.max(0, testimonials.length - perView);
+  const canRotate = maxIndex > 0;
+
+  // keep the index in range when the breakpoint or the list changes
+  useEffect(() => { setI((v) => Math.min(v, maxIndex)); }, [maxIndex]);
+
+  const step = (d) => setI((v) => (v + d < 0 ? maxIndex : v + d > maxIndex ? 0 : v + d));
+
+  /* Advance one card at a time. Hovering, focusing a card, or a
+     prefers-reduced-motion setting stops it. */
+  useEffect(() => {
+    if (!canRotate || paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setI((v) => (v >= maxIndex ? 0 : v + 1)), ROTATE_MS);
+    return () => clearInterval(id);
+  }, [canRotate, paused, maxIndex]);
+
+  return (
+    <section className="bg-deep">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <SectionHead center light eyebrow="Client words" title="Trusted across Indore, one family at a time"
+          sub="A few of the buyers, sellers and investors who've worked with Mitesh Real Estate Solution." />
+
+        <div
+          className="relative mt-10"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Client testimonials"
+        >
+          <div className="overflow-hidden">
+            <ul
+              className="flex list-none p-0"
+              style={{
+                transform: `translateX(-${i * (100 / perView)}%)`,
+                transition: "transform .6s cubic-bezier(.22,.61,.36,1)",
+              }}
+            >
+              {testimonials.map((t, idx) => (
+                <li
+                  key={t.id ?? `${t.name}-${idx}`}
+                  className="px-2.5"
+                  style={{ flex: `0 0 ${100 / perView}%` }}
+                  aria-hidden={idx < i || idx >= i + perView}
+                >
+                  <TestimonialCard t={t} />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {canRotate && (
+            <div className="mt-7 flex items-center justify-center gap-4">
+              <button type="button" onClick={() => step(-1)} aria-label="Previous testimonials"
+                className="grid h-9 w-9 place-items-center rounded-full text-ivory transition-colors hover:text-brass"
+                style={{ border: "1px solid rgba(237,227,206,.28)" }}>
+                <ArrowLeft size={15} />
+              </button>
+
+              <p className="t-13 tabular-nums text-ivory" style={{ opacity: 0.7 }} aria-live="polite">
+                {Math.min(i + perView, testimonials.length)} / {testimonials.length}
+                <span className="ml-2" style={{ opacity: 0.55 }}>{paused ? "paused" : ""}</span>
+              </p>
+
+              <button type="button" onClick={() => step(1)} aria-label="Next testimonials"
+                className="grid h-9 w-9 place-items-center rounded-full text-ivory transition-colors hover:text-brass"
+                style={{ border: "1px solid rgba(237,227,206,.28)" }}>
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 /* ---------- Enquiry form ---------- */
 const EnquiryForm = ({ prefill }) => {
@@ -3271,16 +3371,20 @@ export default function MiteshRealEstateApp() {
   const [prefill, setPrefill] = useState(null);
   const [pending, setPending] = useState(null);
   const [properties, setProperties] = useState(PROPERTIES);
+  const [testimonials, setTestimonials] = useState(TESTIMONIALS);
 
-  /* Swap in the Supabase listings once they arrive. Any failure — no key, table
-     missing, network down — leaves the bundled listings in place, so the site
-     never renders empty. */
+  /* Swap in the Supabase content once it arrives. Any failure — no key, table
+     missing, network down — leaves the bundled data in place, so the site never
+     renders empty. */
   useEffect(() => {
     if (!dbReady()) return;
     let live = true;
     fetchProperties()
       .then((rows) => { if (live && rows.length) setProperties(rows); })
       .catch((err) => console.warn("Falling back to bundled listings →", err.message));
+    fetchTestimonials()
+      .then((rows) => { if (live && rows.length) setTestimonials(rows); })
+      .catch((err) => console.warn("Falling back to bundled testimonials →", err.message));
     return () => { live = false; };
   }, []);
 
@@ -3288,7 +3392,8 @@ export default function MiteshRealEstateApp() {
     properties,
     localities: localitiesOf(properties),
     types: typesOf(properties),
-  }), [properties]);
+    testimonials,
+  }), [properties, testimonials]);
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
