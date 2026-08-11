@@ -7,15 +7,29 @@ Everything lives in [`mitesh-realestate.jsx`](mitesh-realestate.jsx): styles, da
 illustrations, sections and routing. Drop it into any React app and render the
 default export.
 
-## Requirements
+## Running it
+
+Vite + React + Tailwind. Node 18 or newer.
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # -> dist/
+npm run preview  # serve the production build
+```
+
+Deploys to Vercel as-is: build command `npm run build`, output directory `dist`.
 
 | Dependency | Why |
 |---|---|
-| `react` 18+ | the component itself |
+| `react` 18 | the component itself |
 | `lucide-react` | icons (brand marks are inline SVG — lucide dropped those) |
-| Tailwind CSS | layout utilities; the file only ships its own custom classes |
+| `tailwindcss` 3 | layout utilities; the component only ships its own custom classes |
 
-## Usage
+Tailwind scans `mitesh-realestate.jsx` at the repo root — see `tailwind.config.js`.
+Fonts (Marcellus + Archivo) come from Google Fonts via the embedded stylesheet.
+
+## Reusing the component elsewhere
 
 ```jsx
 import MiteshRealEstateApp from "./mitesh-realestate.jsx";
@@ -25,8 +39,24 @@ export default function App() {
 }
 ```
 
-Fonts (Marcellus + Archivo) are pulled from Google Fonts by the embedded
-stylesheet, so no extra setup is needed.
+Tailwind must be present in the host app; the file supplies only its own
+custom classes.
+
+## Supabase
+
+`SUPABASE` in section 2c holds the project URL and the **publishable** key —
+that key is meant to ship in client code and is guarded by row-level security.
+Never put the `service_role` / secret key there.
+
+`supabase-schema.sql` creates both tables and their policies:
+
+- **`enquiries`** — anon may insert leads but cannot read them back. View them in
+  the dashboard, or from a server using the secret key.
+- **`properties`** — anon may read published rows only; no anon write path.
+
+Listings load from `properties` at runtime. If the fetch fails for any reason —
+no key, missing table, network down — the site falls back to the listings
+bundled in the file, so it never renders empty.
 
 ## Where to edit things
 
