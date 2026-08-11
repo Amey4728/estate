@@ -188,9 +188,6 @@ insert into public.testimonials (name, role, rating, text, source, sort_order) v
   ('Rohit & Sneha Kulkarni', 'Bought a 3 BHK in Vijay Nagar', 5,
    'We had visited eleven projects on our own and were exhausted. Mitesh sir shortlisted three, explained exactly why, and negotiated ₹6 lakh below the quoted price. The registration was done before our possession date.',
    'existing site', 0),
-  ('Farhan Shaikh', 'Investor · 2 properties via MRS', 5,
-   'What I value is the honesty. I was set on a project on the AB Bypass and they talked me out of it with actual rental data, then found me a better-yielding office bay on the Super Corridor. That''s advice, not brokerage.',
-   'existing site', 1),
   ('Meera Jain', 'Sold a flat in Saket Nagar', 4,
    'They priced my flat realistically, brought only serious buyers, and handled the society NOC and paperwork completely. Sold in five weeks while I was overseas — everything on video call and email.',
    'existing site', 2);

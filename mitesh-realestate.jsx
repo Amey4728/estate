@@ -2104,12 +2104,6 @@ const TESTIMONIALS = [
     text: "We had visited eleven projects on our own and were exhausted. Mitesh sir shortlisted three, explained exactly why, and negotiated ₹6 lakh below the quoted price. The registration was done before our possession date.",
   },
   {
-    name: "Farhan Shaikh",
-    role: "Investor · 2 properties via MRS",
-    rating: 5,
-    text: "What I value is the honesty. I was set on a project on the AB Bypass and they talked me out of it with actual rental data, then found me a better-yielding office bay on the Super Corridor. That's advice, not brokerage.",
-  },
-  {
     name: "Meera Jain",
     role: "Sold a flat in Saket Nagar",
     rating: 4,
