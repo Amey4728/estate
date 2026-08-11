@@ -194,3 +194,28 @@ insert into public.testimonials (name, role, rating, text, source, sort_order) v
   ('Meera Jain', 'Sold a flat in Saket Nagar', 4,
    'They priced my flat realistically, brought only serious buyers, and handled the society NOC and paperwork completely. Sold in five weeks while I was overseas — everything on video call and email.',
    'existing site', 2);
+
+-- ------------------------------------------------------------- inbox view
+-- Convenience view for reading leads in the dashboard: resolves property_id to
+-- the listing title and shows IST timestamps.
+--
+-- security_invoker makes the view respect the caller's RLS. Without it a view
+-- runs with its owner's rights, and anon could read every lead straight through
+-- it — bypassing the policy on the underlying table.
+create or replace view public.enquiries_inbox
+with (security_invoker = true) as
+select e.id,
+       e.created_at at time zone 'Asia/Kolkata' as received_ist,
+       e.handled,
+       e.ref,
+       e.name,
+       e.phone,
+       e.email,
+       coalesce(p.title, e.property_id, '—') as enquired_about,
+       p.location,
+       e.budget,
+       e.location as preferred_area,
+       e.message
+from public.enquiries e
+left join public.properties p on p.id = e.property_id
+order by e.created_at desc;
