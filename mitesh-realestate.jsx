@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Menu, X, MapPin, BedDouble, Bath, Ruler, Phone, Mail, Clock, Star,
   Building2, Home, KeyRound, TrendingUp, Handshake, ShieldCheck,
@@ -148,6 +148,38 @@ const NAV_LINKS = [
   { label: "About Us", target: "about" },
   { label: "Contact Us", target: "contact" },
 ];
+
+/* 2c. ===================== SUPABASE =====================
+   Paste the project's ANON / publishable key below — it is meant to ship in
+   client code and is guarded by row-level security. Never put the service_role
+   key here; it bypasses RLS.
+
+   Run supabase-schema.sql in the SQL editor to create the tables and policies.
+   Leave anonKey empty and the site still works: enquiries fall back to a console
+   log and the listings bundled in this file are used. */
+const SUPABASE = {
+  url: "https://jlhhdpbxpwdwwqwycdtf.supabase.co",
+  anonKey: "sb_publishable_Kn0vxJgLxX1gltzRTNbBEA_XDNW_7vD",
+};
+const dbReady = () => Boolean(SUPABASE.url && SUPABASE.anonKey);
+
+/* Minimal PostgREST client — avoids a dependency so this stays a single file. */
+const db = async (path, { method = "GET", body, headers } = {}) => {
+  const res = await fetch(`${SUPABASE.url}/rest/v1/${path}`, {
+    method,
+    headers: {
+      apikey: SUPABASE.anonKey,
+      Authorization: `Bearer ${SUPABASE.anonKey}`,
+      "Content-Type": "application/json",
+      ...headers,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!res.ok) throw new Error(data?.message || `Supabase ${res.status}`);
+  return data;
+};
 
 /* 2b. ===================== IMAGE ASSETS =====================
    Project creatives embedded as data URIs (swap for hosted files when deploying).
@@ -2085,8 +2117,49 @@ const TESTIMONIALS = [
   },
 ];
 
-const LOCALITIES = [...new Set(PROPERTIES.map((p) => p.location.split(",")[0].trim()))];
-const TYPES = [...new Set(PROPERTIES.map((p) => p.type))];
+const localitiesOf = (list) => [...new Set(list.map((p) => p.location.split(",")[0].trim()))];
+const typesOf = (list) => [...new Set(list.map((p) => p.type))];
+
+const LOCALITIES = localitiesOf(PROPERTIES);
+const TYPES = typesOf(PROPERTIES);
+
+/* The listings above are the shipped fallback. When Supabase is reachable the
+   app swaps in whatever is in the properties table; every dropdown, footer link
+   and hero counter reads from this context so they stay in step. */
+const CatalogueCtx = createContext({ properties: PROPERTIES, localities: LOCALITIES, types: TYPES });
+const useCatalogue = () => useContext(CatalogueCtx);
+
+/* DB row (snake_case) -> the shape the components expect */
+const fromRow = (row) => {
+  const bundled = PROPERTIES.find((p) => p.id === row.id);
+  return {
+    id: row.id,
+    title: row.title,
+    location: row.location,
+    price: row.price == null ? null : Number(row.price),
+    type: row.type,
+    area: row.area ?? 0,
+    sizeLabel: row.size_label || "",
+    bedrooms: row.bedrooms ?? 0,
+    bathrooms: row.bathrooms ?? 0,
+    status: row.status || "Available",
+    featured: Boolean(row.featured),
+    art: row.art || "plot",
+    rate: row.rate ?? undefined,
+    rera: row.rera ?? undefined,
+    transaction: row.transaction ?? undefined,
+    facing: row.facing ?? undefined,
+    description: row.description || "",
+    amenities: Array.isArray(row.amenities) ? row.amenities : [],
+    // rows seeded with null images keep the creatives embedded in this file
+    images: row.images || bundled?.images,
+  };
+};
+
+const fetchProperties = async () => {
+  const rows = await db("properties?select=*&published=eq.true&order=sort_order.asc");
+  return Array.isArray(rows) ? rows.map(fromRow) : [];
+};
 /* footer link wording — the mass nouns don't take a plain "s" */
 const PLURAL = {
   Commercial: "Commercial spaces",
@@ -2123,11 +2196,38 @@ const cx = (...c) => c.filter(Boolean).join(" ");
 
 /* Simulated submit — swap the body of this function for a real API call later.
    e.g.  return fetch("/api/enquiries", { method:"POST", body: JSON.stringify(payload) }) */
-const submitEnquiry = (payload) =>
-  new Promise((resolve) => {
-    console.log("Enquiry payload →", payload);
-    setTimeout(() => resolve({ ok: true, ref: `MRS-${Math.floor(1000 + Math.random() * 9000)}` }), 1400);
-  });
+const newRef = () => `MRS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+/* Writes the lead to Supabase. With no anon key configured it degrades to the
+   old console-log stub so the form still works in local previews. */
+const submitEnquiry = async (payload) => {
+  const ref = newRef();
+  if (!dbReady()) {
+    console.log("Enquiry payload → (no Supabase key set)", payload);
+    await new Promise((r) => setTimeout(r, 900));
+    return { ok: true, ref };
+  }
+  try {
+    await db("enquiries", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: [{
+        ref,
+        name: payload.name.trim(),
+        email: payload.email.trim(),
+        phone: payload.phone.trim(),
+        property_id: payload.propertyId || null,
+        location: payload.location || null,
+        budget: payload.budget || null,
+        message: payload.message?.trim() || null,
+      }],
+    });
+    return { ok: true, ref };
+  } catch (err) {
+    console.error("Enquiry submit failed →", err);
+    return { ok: false, error: err.message };
+  }
+};
 
 /* 5. ===================== ILLUSTRATIONS =====================
    Every listing renders an "architect's elevation" — a duotone SVG scene in
@@ -2468,11 +2568,22 @@ const Header = ({ go, onEnquire }) => {
 };
 
 /* ---------- Hero ---------- */
-const HERO_STATS = [
-  { k: `${PROPERTIES.length}`, v: "Properties live right now" },
-  { k: `${LOCALITIES.length}`, v: "Indore localities & corridors" },
+const heroStats = ({ properties, localities }) => [
+  { k: `${properties.length}`, v: "Properties live right now" },
+  { k: `${localities.length}`, v: "Indore localities & corridors" },
   { k: "M.P. RERA", v: `Reg. ${CONTACT.rera}` },
 ];
+
+const HeroStats = () => (
+  <>
+    {heroStats(useCatalogue()).map((s) => (
+      <div key={s.v}>
+        <dt className="font-display text-2xl sm:text-3xl">{s.k}</dt>
+        <dd className="mt-1 text-xs leading-snug text-muted">{s.v}</dd>
+      </div>
+    ))}
+  </>
+);
 
 const Hero = ({ go, onEnquire }) => (
   <section id="home" className="relative overflow-hidden">
@@ -2499,12 +2610,7 @@ const Hero = ({ go, onEnquire }) => (
           </button>
         </div>
         <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-line pt-6">
-          {HERO_STATS.map((s) => (
-            <div key={s.k}>
-              <dt className="font-display text-2xl sm:text-3xl">{s.k}</dt>
-              <dd className="mt-1 text-xs leading-snug text-muted">{s.v}</dd>
-            </div>
-          ))}
+          <HeroStats />
         </dl>
       </div>
       <div className="rise rise-2 relative">
@@ -2525,6 +2631,7 @@ const Hero = ({ go, onEnquire }) => (
 const DEFAULT_FILTERS = { q: "", location: "All locations", type: "All types", band: 0, bedrooms: "Any", status: "Any status" };
 
 const FilterBar = ({ filters, setFilters, count, total }) => {
+  const { localities, types } = useCatalogue();
   const set = (k, v) => setFilters((f) => ({ ...f, [k]: v }));
   const dirty = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
   return (
@@ -2538,11 +2645,11 @@ const FilterBar = ({ filters, setFilters, count, total }) => {
           </div>
           <select className="field" aria-label="Filter by location" value={filters.location} onChange={(e) => set("location", e.target.value)}>
             <option>All locations</option>
-            {LOCALITIES.map((l) => <option key={l}>{l}</option>)}
+            {localities.map((l) => <option key={l}>{l}</option>)}
           </select>
           <select className="field" aria-label="Filter by property type" value={filters.type} onChange={(e) => set("type", e.target.value)}>
             <option>All types</option>
-            {TYPES.map((t) => <option key={t}>{t}</option>)}
+            {types.map((ty) => <option key={ty}>{ty}</option>)}
           </select>
           <select className="field" aria-label="Filter by price range" value={filters.band} onChange={(e) => set("band", +e.target.value)}>
             {PRICE_BANDS.map((b, i) => <option key={b.label} value={i}>{b.label}</option>)}
@@ -2902,11 +3009,13 @@ const Testimonials = () => (
 
 /* ---------- Enquiry form ---------- */
 const EnquiryForm = ({ prefill }) => {
+  const { properties, localities } = useCatalogue();
   const blank = { name: "", email: "", phone: "", propertyId: "", location: "", budget: "", message: "" };
   const [values, setValues] = useState(blank);
   const [touched, setTouched] = useState({});
-  const [status, setStatus] = useState("idle"); // idle | submitting | success
+  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
   const [ref, setRef] = useState("");
+  const [sendError, setSendError] = useState("");
   const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
@@ -2935,12 +3044,14 @@ const EnquiryForm = ({ prefill }) => {
     setAttempted(true);
     if (Object.keys(errors).length) return;
     setStatus("submitting");
+    setSendError("");
     const res = await submitEnquiry({ ...values, submittedAt: new Date().toISOString() });
     if (res.ok) { setRef(res.ref); setStatus("success"); }
+    else { setSendError(res.error || "Something went wrong."); setStatus("error"); }
   };
 
   if (status === "success") {
-    const prop = PROPERTIES.find((p) => p.id === values.propertyId);
+    const prop = properties.find((p) => p.id === values.propertyId);
     return (
       <div className="rounded-2xl bg-card p-8 text-center" style={{ border: "1px solid var(--line)" }} role="status">
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full" style={{ background: "rgba(28,74,59,.1)" }}>
@@ -2988,7 +3099,7 @@ const EnquiryForm = ({ prefill }) => {
           <label className="label" htmlFor="enq-prop">Interested property</label>
           <select id="enq-prop" className="field" value={values.propertyId} onChange={set("propertyId")}>
             <option value="">General enquiry</option>
-            {PROPERTIES.filter((p) => p.status !== "Sold").map((p) => (
+            {properties.filter((p) => p.status !== "Sold").map((p) => (
               <option key={p.id} value={p.id}>{p.title}{p.price ? " — " + formatPrice(p.price) : ""}</option>
             ))}
           </select>
@@ -2997,7 +3108,7 @@ const EnquiryForm = ({ prefill }) => {
           <label className="label" htmlFor="enq-loc">Preferred location</label>
           <select id="enq-loc" className="field" value={values.location} onChange={set("location")}>
             <option value="">Anywhere in Indore</option>
-            {LOCALITIES.map((l) => <option key={l}>{l}</option>)}
+            {localities.map((l) => <option key={l}>{l}</option>)}
           </select>
         </div>
         <div className="sm:col-span-2">
@@ -3013,8 +3124,16 @@ const EnquiryForm = ({ prefill }) => {
             placeholder="Tell us what you're looking for — timeline, must-haves, anything that helps." />
         </div>
       </div>
+      {status === "error" && (
+        <p className="err mt-5" role="alert">
+          We couldn't send that just now — {sendError} Please try again, or call us on{" "}
+          <a className="underline" href={CONTACT.phones[0].href}>{CONTACT.phones[0].label}</a>.
+        </p>
+      )}
       <button type="submit" disabled={submitting} className="btn btn-primary mt-6 w-full py-3.5 text-sm sm:w-auto sm:px-8">
-        {submitting ? (<><Loader2 size={16} className="animate-spin" /> Sending…</>) : (<>Submit enquiry <ArrowRight size={15} className="arrow" /></>)}
+        {submitting ? (<><Loader2 size={16} className="animate-spin" /> Sending…</>)
+          : status === "error" ? (<>Try again <ArrowRight size={15} className="arrow" /></>)
+          : (<>Submit enquiry <ArrowRight size={15} className="arrow" /></>)}
       </button>
       <p className="mt-3 text-xs text-muted">By submitting, you agree to be contacted by Mitesh Real Estate Solution about your enquiry. No spam, ever.</p>
     </form>
@@ -3099,7 +3218,9 @@ const FooterLink = ({ onClick, children }) => (
   </button>
 );
 
-const Footer = ({ go, onTypeFilter }) => (
+const Footer = ({ go, onTypeFilter }) => {
+  const { types } = useCatalogue();
+  return (
   <footer className="bg-deep" style={{ borderTop: "2px solid var(--brass)" }}>
     <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 footer-grid lg:px-8">
       <div>
@@ -3121,7 +3242,7 @@ const Footer = ({ go, onTypeFilter }) => (
         {NAV_LINKS.map((l) => <FooterLink key={l.target} onClick={() => go(l.target)}>{l.label}</FooterLink>)}
       </FooterCol>
       <FooterCol title="Properties">
-        {TYPES.map((t) => <FooterLink key={t} onClick={() => onTypeFilter(t)}>{PLURAL[t] || `${t}s`} in Indore</FooterLink>)}
+        {types.map((ty) => <FooterLink key={ty} onClick={() => onTypeFilter(ty)}>{PLURAL[ty] || `${ty}s`} in Indore</FooterLink>)}
       </FooterCol>
       <FooterCol title="Contact">
         <p className="t-13 leading-relaxed text-ivory" style={{ opacity: 0.85 }}>{CONTACT.office}</p>
@@ -3140,7 +3261,8 @@ const Footer = ({ go, onTypeFilter }) => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 /* 8. ===================== APP ===================== */
 export default function MiteshRealEstateApp() {
@@ -3148,6 +3270,25 @@ export default function MiteshRealEstateApp() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [prefill, setPrefill] = useState(null);
   const [pending, setPending] = useState(null);
+  const [properties, setProperties] = useState(PROPERTIES);
+
+  /* Swap in the Supabase listings once they arrive. Any failure — no key, table
+     missing, network down — leaves the bundled listings in place, so the site
+     never renders empty. */
+  useEffect(() => {
+    if (!dbReady()) return;
+    let live = true;
+    fetchProperties()
+      .then((rows) => { if (live && rows.length) setProperties(rows); })
+      .catch((err) => console.warn("Falling back to bundled listings →", err.message));
+    return () => { live = false; };
+  }, []);
+
+  const catalogue = useMemo(() => ({
+    properties,
+    localities: localitiesOf(properties),
+    types: typesOf(properties),
+  }), [properties]);
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -3175,7 +3316,7 @@ export default function MiteshRealEstateApp() {
   const filtered = useMemo(() => {
     const band = PRICE_BANDS[filters.band];
     const q = filters.q.trim().toLowerCase();
-    return PROPERTIES.filter((p) => {
+    return properties.filter((p) => {
       if (q && !(p.title + " " + p.location + " " + p.type).toLowerCase().includes(q)) return false;
       if (filters.location !== "All locations" && !p.location.startsWith(filters.location)) return false;
       if (filters.type !== "All types" && p.type !== filters.type) return false;
@@ -3188,14 +3329,15 @@ export default function MiteshRealEstateApp() {
       if ((filters.status === "Available" || filters.status === "Sold") && p.status !== filters.status) return false;
       return true;
     });
-  }, [filters]);
+  }, [filters, properties]);
 
-  const current = route.name === "property" ? PROPERTIES.find((p) => p.id === route.id) : null;
+  const current = route.name === "property" ? properties.find((p) => p.id === route.id) : null;
   const related = current
-    ? PROPERTIES.filter((p) => p.id !== current.id && (p.type === current.type || p.location === current.location)).slice(0, 3)
+    ? properties.filter((p) => p.id !== current.id && (p.type === current.type || p.location === current.location)).slice(0, 3)
     : [];
 
   return (
+    <CatalogueCtx.Provider value={catalogue}>
     <div className="mrs min-h-screen">
       <style>{CSS}</style>
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-card focus:px-4 focus:py-2 focus:shadow-lg">
@@ -3209,7 +3351,7 @@ export default function MiteshRealEstateApp() {
         ) : (
           <>
             <Hero go={go} onEnquire={() => onEnquire(null)} />
-            <FilterBar filters={filters} setFilters={setFilters} count={filtered.length} total={PROPERTIES.length} />
+            <FilterBar filters={filters} setFilters={setFilters} count={filtered.length} total={properties.length} />
             <section id="properties" className="scroll-mt-24 pb-16 pt-14 lg:pb-20">
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <SectionHead eyebrow="Live inventory" title="Plots, homes & commercial space across Indore"
@@ -3227,5 +3369,6 @@ export default function MiteshRealEstateApp() {
       </main>
       <Footer go={go} onTypeFilter={onTypeFilter} />
     </div>
+    </CatalogueCtx.Provider>
   );
 }
