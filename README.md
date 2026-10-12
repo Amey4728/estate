@@ -50,13 +50,31 @@ Never put the `service_role` / secret key there.
 
 `supabase-schema.sql` creates both tables and their policies:
 
-- **`enquiries`** — anon may insert leads but cannot read them back. View them in
-  the dashboard, or from a server using the secret key.
+- **`enquiries`** — anon may insert leads but cannot read them back. View them on
+  the admin dashboard (below).
 - **`properties`** — anon may read published rows only; no anon write path.
 
 Listings load from `properties` at runtime. If the fetch fails for any reason —
 no key, missing table, network down — the site falls back to the listings
 bundled in the file, so it never renders empty.
+
+## Admin dashboard
+
+`/#/dashboard` lists every enquiry sent from the website — search, filter by
+new / handled, call or WhatsApp the person, tick leads off, export to CSV. The
+code is in [`src/Dashboard.jsx`](src/Dashboard.jsx) and is only downloaded when
+that address is opened.
+
+It signs in through Supabase Auth, and there is exactly one account that can read
+leads: the super admin recorded in `public.admins`. The table is limited to a
+single row, so no second admin or staff login can exist. One-time setup:
+
+1. Supabase → Authentication → Users → **Add user** (tick *Auto Confirm User*).
+2. Put that email at the bottom of `add-dashboard.sql` and run the file in the
+   SQL editor.
+
+Re-run `add-dashboard.sql` whenever `supabase-schema.sql` is re-run. Running it
+with a different email moves the admin role to that user and removes the old one.
 
 ## Where to edit things
 

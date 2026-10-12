@@ -22,7 +22,7 @@ import {
    ========================================================================= */
 
 /* 1. ===================== STYLES ===================== */
-const CSS = `
+export const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Archivo:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap');
 
 :root{
@@ -174,7 +174,7 @@ const NAV_LINKS = [
    Run supabase-schema.sql in the SQL editor to create the tables and policies.
    Leave anonKey empty and the site still works: enquiries fall back to a console
    log and the listings bundled in this file are used. */
-const SUPABASE = {
+export const SUPABASE = {
   url: "https://jlhhdpbxpwdwwqwycdtf.supabase.co",
   anonKey: "sb_publishable_Kn0vxJgLxX1gltzRTNbBEA_XDNW_7vD",
 };
@@ -3153,7 +3153,7 @@ const About = ({ go }) => (
           { k: "4", v: "Growth corridors with plot options" },
           { k: "A-IND-24-1732", v: "M.P. RERA agent registration" },
         ].map((s, i) => (
-          <div key={s.k} className={cx("rounded-2xl p-6", i === 0 ? "bg-deep" : "bg-card")}
+          <div key={s.v} className={cx("rounded-2xl p-6", i === 0 ? "bg-deep" : "bg-card")}
             style={i === 0 ? undefined : { border: "1px solid var(--line)" }}>
             <p className={cx("font-display text-3xl", i === 0 ? "text-brass" : "")} style={i === 0 ? undefined : { color: "var(--deep)" }}>{s.k}</p>
             <p className={cx("mt-2 text-xs leading-snug", i === 0 ? "text-ivory" : "text-muted")} style={i === 0 ? { opacity: 0.8 } : undefined}>{s.v}</p>

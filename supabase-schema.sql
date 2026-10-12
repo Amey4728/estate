@@ -28,8 +28,9 @@ alter table public.enquiries enable row level security;
 create policy "anon can submit enquiries"
   on public.enquiries for insert to anon with check (true);
 
--- ...but nobody anonymous can read them back. Use the dashboard or a
--- service_role key on your server to view leads.
+-- ...but nobody anonymous can read them back. Leads are read on the site's
+-- /#/dashboard page by signed-in admins — run add-dashboard.sql after this file
+-- to (re)create that access.
 revoke select on public.enquiries from anon;
 
 -- ---------------------------------------------------------------- properties
