@@ -154,7 +154,7 @@ const SignIn = ({ onDone }) => {
         <button type="submit" disabled={busy} className="btn btn-dark mt-6 w-full py-3 text-sm disabled:opacity-60">
           {busy ? "Signing in…" : "Sign in"}
         </button>
-        <a href="#" className="text-muted mt-5 inline-flex items-center gap-1.5 text-sm hover:underline">
+        <a href="#" className="tap-inline text-muted mt-5 gap-1.5 text-sm hover:underline">
           <ArrowLeft size={14} /> Back to the website
         </a>
       </form>

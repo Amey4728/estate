@@ -126,6 +126,17 @@ select.field{ appearance:none; background-image:url("data:image/svg+xml;utf8,<sv
   .filter-grid{grid-template-columns:1.6fr repeat(5,minmax(0,1fr)) auto;}
 }
 
+/* touch screens: text links get a 44px hit area, and fields are 16px so iOS
+   Safari doesn't zoom the page when one is focused */
+.tap{ display:block; } .tap-inline{ display:inline-flex; align-items:center; }
+@media (pointer:coarse){
+  .tap{ display:flex; align-items:center; min-height:44px; }
+  .tap-inline{ min-height:44px; }
+  /* the taller rows already space a stacked list — drop the gap between them */
+  .mrs .tap + .tap{ margin-top:0; }
+  .field{ font-size:16px; }
+}
+
 html{ scroll-behavior:smooth; }
 @media (prefers-reduced-motion:reduce){
   html{ scroll-behavior:auto; }
@@ -2725,7 +2736,7 @@ const Header = ({ go, onEnquire }) => {
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
           {NAV_LINKS.map((l) => (
             <button key={l.target} type="button" onClick={() => nav(l.target)}
-              className="t-13 font-medium text-muted transition-colors hover:text-brass">
+              className="tap-inline t-13 font-medium text-muted transition-colors hover:text-brass">
               {l.label}
             </button>
           ))}
@@ -2828,7 +2839,7 @@ const FilterBar = ({ filters, setFilters, count, total }) => {
         <div className="filter-grid gap-3">
           <div className="relative xl:col-span-1">
             <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-            <input className="field pl-10" type="search" placeholder="Search by name or area…" aria-label="Search properties"
+            <input className="field" style={{ paddingLeft: "2.4rem" }} type="search" placeholder="Search by name or area…" aria-label="Search properties"
               value={filters.q} onChange={(e) => set("q", e.target.value)} />
           </div>
           <select className="field" aria-label="Filter by location" value={filters.location} onChange={(e) => set("location", e.target.value)}>
@@ -2955,7 +2966,7 @@ const PropertyDetails = ({ property, onBack, onEnquire, related, onView }) => {
   const sold = property.status === "Sold";
   return (
     <section className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-      <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-brass">
+      <button type="button" onClick={onBack} className="tap-inline gap-2 text-sm font-medium text-muted transition-colors hover:text-brass">
         <ArrowLeft size={16} /> Back to all properties
       </button>
 
@@ -3412,10 +3423,10 @@ const ContactCard = ({ onSchedule }) => (
     <div className="mt-7 flex-1 space-y-5">
       <ContactRow icon={Phone} label="Phone">
         {CONTACT.phones.map((p) => (
-          <a key={p.href} className="block hover:text-brass" href={p.href}>{p.label}</a>
+          <a key={p.href} className="tap hover:text-brass" href={p.href}>{p.label}</a>
         ))}
       </ContactRow>
-      <ContactRow icon={Mail} label="Email"><a className="hover:text-brass" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></ContactRow>
+      <ContactRow icon={Mail} label="Email"><a className="tap hover:text-brass" href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></ContactRow>
       <ContactRow icon={MapPin} label="Office">{CONTACT.office}</ContactRow>
       <ContactRow icon={Clock} label="Business hours">
         {CONTACT.hours.map((h) => <span key={h.d} className="block">{h.d} · {h.t}</span>)}
@@ -3464,7 +3475,7 @@ const FooterCol = ({ title, children }) => (
 );
 
 const FooterLink = ({ onClick, children }) => (
-  <button type="button" onClick={onClick} className="block t-13 text-ivory transition-colors hover:text-brass" style={{ opacity: 0.85 }}>
+  <button type="button" onClick={onClick} className="tap t-13 text-ivory transition-colors hover:text-brass" style={{ opacity: 0.85 }}>
     {children}
   </button>
 );
@@ -3482,7 +3493,7 @@ const Footer = ({ go, onTypeFilter }) => {
         <div className="mt-5 flex gap-2.5">
           {SOCIALS.map((s) => (
             <a key={s.label} href="#" onClick={(e) => e.preventDefault()} aria-label={`${s.label} (link coming soon)`}
-              className="grid h-9 w-9 place-items-center rounded-lg transition-colors hover:text-brass text-ivory"
+              className="grid h-11 w-11 place-items-center rounded-lg transition-colors hover:text-brass text-ivory"
               style={{ background: "rgba(237,227,206,.08)" }}>
               <Brand d={s.d} />
             </a>
@@ -3498,17 +3509,17 @@ const Footer = ({ go, onTypeFilter }) => {
       <FooterCol title="Contact">
         <p className="t-13 leading-relaxed text-ivory" style={{ opacity: 0.85 }}>{CONTACT.office}</p>
         {CONTACT.phones.map((p) => (
-          <a key={p.href} className="block t-13 text-ivory hover:text-brass" style={{ opacity: 0.85 }} href={p.href}>{p.label}</a>
+          <a key={p.href} className="tap t-13 text-ivory hover:text-brass" style={{ opacity: 0.85 }} href={p.href}>{p.label}</a>
         ))}
-        <a className="block t-13 text-ivory hover:text-brass" style={{ opacity: 0.85 }} href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+        <a className="tap t-13 text-ivory hover:text-brass" style={{ opacity: 0.85 }} href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
       </FooterCol>
     </div>
     <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 border-t px-4 py-5 text-xs sm:flex-row sm:px-6 lg:px-8"
       style={{ borderColor: "rgba(237,227,206,.14)", color: "rgba(237,227,206,.6)" }}>
       <p>© {new Date().getFullYear()} {CONTACT.brand}. All rights reserved. · M.P. RERA Reg. No.: {CONTACT.rera}</p>
       <div className="flex gap-5">
-        <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-brass">Privacy Policy</a>
-        <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-brass">Terms & Conditions</a>
+        <a href="#" onClick={(e) => e.preventDefault()} className="tap-inline hover:text-brass">Privacy Policy</a>
+        <a href="#" onClick={(e) => e.preventDefault()} className="tap-inline hover:text-brass">Terms & Conditions</a>
       </div>
     </div>
   </footer>
