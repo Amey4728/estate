@@ -76,6 +76,31 @@ single row, so no second admin or staff login can exist. One-time setup:
 Re-run `add-dashboard.sql` whenever `supabase-schema.sql` is re-run. Running it
 with a different email moves the admin role to that user and removes the old one.
 
+## Downtime alerts
+
+[`.github/workflows/uptime.yml`](.github/workflows/uptime.yml) runs every 10
+minutes on GitHub Actions and emails when the website or Supabase (database API
+or auth) stops answering, then once more when it recovers. A check counts as down
+only after three failed attempts. While an outage is on, an issue labelled
+`uptime-alert` stays open in the repo — that is what stops repeat emails.
+
+One-time setup, in GitHub → repo → Settings → Secrets and variables → Actions:
+
+| Kind | Name | Value |
+|---|---|---|
+| Variable | `SITE_URL` | the live site address |
+| Secret | `SMTP_HOST` | e.g. `smtp.gmail.com` (TLS on port 465) |
+| Secret | `SMTP_USER` | the mailbox that sends the alert |
+| Secret | `SMTP_PASS` | its password — for Gmail, an [app password](https://myaccount.google.com/apppasswords) |
+| Secret | `ALERT_EMAIL` | where alerts go; defaults to `SMTP_USER` |
+
+Then Actions → **Uptime check** → **Run workflow** with *Send a test email*
+ticked to confirm mail arrives. To run the checks by hand:
+`SITE_URL=https://… bash scripts/uptime-check.sh` (prints nothing when healthy).
+
+On a public repo, GitHub pauses scheduled workflows after 60 days without a commit;
+it emails a warning first, and re-enabling is one click in the Actions tab.
+
 ## Where to edit things
 
 The file is sectioned with numbered markers — search for them:

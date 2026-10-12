@@ -1,0 +1,89 @@
+name: Uptime check
+
+# Emails when the website or the Supabase backend goes down, and again when it
+# recovers. An open issue labelled "uptime-alert" marks an outage in progress,
+# so one outage sends one email rather than one every run.
+#
+# Setup (repo → Settings → Secrets and variables → Actions):
+#   Variables: SITE_URL     the live site address, e.g. https://example.com
+#   Secrets:   SMTP_HOST    e.g. smtp.gmail.com (must accept TLS on port 465)
+#              SMTP_USER    the mailbox that sends the alert
+#              SMTP_PASS    its password / app password
+#              ALERT_EMAIL  where alerts go (defaults to SMTP_USER)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: Send a test email instead of checking
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency: uptime
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SITE_URL: ${{ vars.SITE_URL }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+      TEST_EMAIL: ${{ inputs.test_email }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check and alert
+        run: |
+          send_mail() { # <subject> <body>
+            if [ -z "$SMTP_HOST" ] || [ -z "$SMTP_USER" ] || [ -z "$SMTP_PASS" ]; then
+              echo "::error::SMTP secrets are not set - cannot send: $1"
+              return 1
+            fi
+            local to="${ALERT_EMAIL:-$SMTP_USER}"
+            printf 'From: Uptime monitor <%s>\nTo: %s\nSubject: %s\nDate: %s\nContent-Type: text/plain; charset=utf-8\n\n%s\n\nChecked at %s\n%s\n' \
+              "$SMTP_USER" "$to" "$1" "$(date -R)" "$2" "$(date -u '+%Y-%m-%d %H:%M UTC')" "$RUN_URL" > mail.txt
+            curl -sS --crlf --ssl-reqd --url "smtps://$SMTP_HOST:465" \
+              --user "$SMTP_USER:$SMTP_PASS" \
+              --mail-from "$SMTP_USER" --mail-rcpt "$to" --upload-file mail.txt
+          }
+
+          if [ "$TEST_EMAIL" = "true" ]; then
+            send_mail "[TEST] Uptime alerts are working" "This is a test from the uptime check. No outage."
+            exit
+          fi
+
+          [ -n "$SITE_URL" ] || echo "::warning::Repository variable SITE_URL is not set - the website itself is not being checked."
+
+          failures=$(bash scripts/uptime-check.sh)
+          open=$(gh issue list --label uptime-alert --state open --json number --jq '.[0].number // empty')
+
+          if [ -n "$failures" ]; then
+            echo "$failures"
+            if [ -n "$open" ]; then
+              echo "Still down - already alerted in issue #$open."
+              exit 0
+            fi
+            gh label create uptime-alert --color B60205 --description "Outage in progress" --force
+            gh issue create --label uptime-alert --title "Outage: $(date -u '+%Y-%m-%d %H:%M UTC')" \
+              --body "$failures"
+            # A failed send fails the run, so GitHub's own "workflow failed"
+            # email still gets through as a fallback.
+            send_mail "[DOWN] Mitesh Real Estate - service is down" "These checks are failing:"$'\n\n'"$failures"
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "All checks are passing again."
+            send_mail "[RECOVERED] Mitesh Real Estate - back up" "All checks are passing again."
+          else
+            echo "All checks passing."
+          fi
