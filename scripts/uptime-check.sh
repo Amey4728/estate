@@ -15,13 +15,20 @@ SITE_URL="${SITE_URL:-}"
 ATTEMPTS="${ATTEMPTS:-3}"     # a check is only "down" if every attempt fails
 RETRY_WAIT="${RETRY_WAIT:-10}" # seconds between attempts
 
+body=$(mktemp)
+
 # probe <name> <url> [extra curl args…] — healthy means HTTP 200.
 probe() {
   local name=$1 url=$2 code=000 i
   shift 2
   for ((i = 1; i <= ATTEMPTS; i++)); do
-    code=$(curl -s -o /dev/null -m 20 -w '%{http_code}' "$@" "$url")
-    [ "$code" = 200 ] && return 0
+    code=$(curl -s -o "$body" -m 20 -w '%{http_code}' "$@" "$url")
+    if [ "$code" = 200 ]; then
+      # EXPECT guards against a 200 from the wrong page, e.g. a host login wall.
+      [ -z "${EXPECT:-}" ] && return 0
+      grep -q "$EXPECT" "$body" && return 0
+      code="200 but page does not contain \"$EXPECT\""
+    fi
     [ "$i" -lt "$ATTEMPTS" ] && sleep "$RETRY_WAIT"
   done
   if [ "$code" = 000 ]; then
@@ -32,7 +39,7 @@ probe() {
 }
 
 if [ -n "$SITE_URL" ]; then
-  probe "Website" "$SITE_URL" -L
+  EXPECT="Mitesh Real Estate" probe "Website" "$SITE_URL" -L
 else
   echo "SITE_URL is not set - skipping the website check" >&2
 fi
