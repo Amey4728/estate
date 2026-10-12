@@ -109,7 +109,7 @@ The file is sectioned with numbered markers — search for them:
 |---|---|
 | `1. STYLES` | brand colour tokens, type scale, motion |
 | `2. SITE CONFIG` | `CONTACT` — phones, email, office address, RERA no., hours |
-| `2b. IMAGE ASSETS` | `IMG` — logo and project creatives as data URIs |
+| `2b. IMAGE ASSETS` | `IMG` — logo and project creatives, imported from `src/assets/` |
 | `3. DATA` | `PROPERTIES`, `SERVICES`, `TESTIMONIALS` |
 | `4. HELPERS` | price/area formatting, validation, `submitEnquiry` |
 | `5. ILLUSTRATIONS` | the SVG "architect's elevation" art |
