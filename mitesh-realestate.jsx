@@ -247,6 +247,29 @@ const IMG = {
    Add / edit / remove properties here — the UI renders from this list. */
 const PROPERTIES = [
   {
+    id: "MRS-205",
+    title: "Venkatesh Dham",
+    location: "Old Indore, Indore",
+    price: null,
+    type: "Row House",
+    area: 0,
+    sizeLabel: "Sizes on request",
+    bedrooms: 0,
+    bathrooms: 0,
+    status: "Available",
+    featured: true,
+    art: "row",
+    images: [
+      { src: IMG.venkateshElevation, fit: "cover", label: "Front elevation" },
+      { src: IMG.venkateshStreet, fit: "contain", label: "Street view" },
+      { src: IMG.venkateshAmenities, fit: "contain", label: "Amenities" },
+      { src: IMG.venkateshPoster, fit: "contain", label: "Project poster" },
+    ],
+    description:
+      "Ready-possession modern row houses in the heart of old Indore — a gated lane of just 10 homes, each with its own lawn and car parking. Airport 1 km, metro station 500 m, railway station 5 km; DMart, Sarafa and MT Cloth Market within 3 km; Bijasan and Bada Ganpati 2 km. Sizes and rates on request.",
+    amenities: ["Ready possession", "Gated campus", "Temple", "Car parking", "Individual lawn", "Narmada water", "Common tube well", "False ceiling", "COBA waterproofing on terrace", "Grocery mart"],
+  },
+  {
     id: "MRS-201",
     title: "Crescent by Emerald Select",
     location: "Mayakhedi (AB Bypass), Indore",
@@ -333,29 +356,6 @@ const PROPERTIES = [
     description:
       "'Premium spaces for business' — Emerald Forum is now RERA-approved. A glass-façade commercial tower of ground-floor showrooms and office floors lined with green planter balconies. Sizes and rates on request.",
     amenities: ["Ground-floor showrooms", "Office floors above retail", "Planter-lined green balconies", "By the Emerald group"],
-  },
-  {
-    id: "MRS-205",
-    title: "Venkatesh Dham",
-    location: "Old Indore, Indore",
-    price: null,
-    type: "Row House",
-    area: 0,
-    sizeLabel: "Sizes on request",
-    bedrooms: 0,
-    bathrooms: 0,
-    status: "Available",
-    featured: true,
-    art: "row",
-    images: [
-      { src: IMG.venkateshElevation, fit: "cover", label: "Front elevation" },
-      { src: IMG.venkateshStreet, fit: "contain", label: "Street view" },
-      { src: IMG.venkateshAmenities, fit: "contain", label: "Amenities" },
-      { src: IMG.venkateshPoster, fit: "contain", label: "Project poster" },
-    ],
-    description:
-      "Ready-possession modern row houses in the heart of old Indore — a gated lane of just 10 homes, each with its own lawn and car parking. Airport 1 km, metro station 500 m, railway station 5 km; DMart, Sarafa and MT Cloth Market within 3 km; Bijasan and Bada Ganpati 2 km. Sizes and rates on request.",
-    amenities: ["Ready possession", "Gated campus", "Temple", "Car parking", "Individual lawn", "Narmada water", "Common tube well", "False ceiling", "COBA waterproofing on terrace", "Grocery mart"],
   },
   {
     id: "MRS-1206598",
