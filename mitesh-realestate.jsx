@@ -166,7 +166,6 @@ const CONTACT = {
   /* both lines from the company logo — phones[0] is the primary / WhatsApp number */
   phones: [
     { label: "94066 22244", href: "tel:+919406622244" },
-    { label: "98276 22244", href: "tel:+919827622244" },
   ],
   whatsapp: "https://wa.me/919406622244",
   email: "meetesh24365@yahoo.com",
